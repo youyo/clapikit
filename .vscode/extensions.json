@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "ms-python.black-formatter",
+    "aws-scripting-guy.cform",
+    "ms-azuretools.vscode-docker",
+    "github.vscode-github-actions",
+    "github.copilot",
+    "github.copilot-chat",
+    "hashicorp.terraform",
+    "ms-ceintl.vscode-language-pack-ja",
+    "renesaarsoo.sql-formatter-vsc",
+    "redhat.vscode-yaml",
+    "rooveterinaryinc.roo-cline"
+  ]
+}

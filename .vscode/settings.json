@@ -1,0 +1,84 @@
+{
+  "editor.tabSize": 2,
+  "explorer.confirmDelete": false,
+  "prettier.printWidth": 120,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "editor.formatOnType": true
+  },
+  "black-formatter.args": ["--line-length=160"],
+  "explorer.confirmDragAndDrop": false,
+  "explorer.sortOrderLexicographicOptions": "unicode",
+  "editor.inlineSuggest.enabled": true,
+  "python.defaultInterpreterPath": "~/.asdf/shims/python",
+  "swaggerViewer.defaultPort": 18513,
+  "python.analysis.extraPaths": ["${workspaceFolder}/src/layers/common"],
+  "[yaml]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.autoIndent": "advanced"
+  },
+  "[json][jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "github.copilot.chat.localeOverride": "ja",
+  "github.copilot.chat.codesearch.enabled": true,
+  "github.copilot.chat.agent.thinkingTool": true,
+  "github.copilot.chat.generateTests.codeLens": true,
+  "github.copilot.chat.edits.temporalContext.enabled": true,
+  "github.copilot.chat.editor.temporalContext.enabled": true,
+  "github.copilot.chat.languageContext.fix.typescript.enabled": true,
+  "github.copilot.chat.languageContext.inline.typescript.enabled": true,
+  "github.copilot.chat.languageContext.typescript.enabled": true,
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "必ず日本語で記述してください"
+    },
+    {
+      "text": "コミットメッセージは、最初にConventional Commitsに則って記述してください"
+    },
+    {
+      "text": "その後ファイルごとの詳細な変更内容を記述してください"
+    }
+  ],
+  "mcp": {
+    "inputs": [],
+    "servers": {
+      "mcp-server-time": {
+        "command": "python",
+        "args": ["-m", "mcp_server_time", "--local-timezone=Asia/Tokyo"],
+        "env": {}
+      },
+      "awslabs.cdk-mcp-server": {
+        "command": "uvx",
+        "args": ["awslabs.cdk-mcp-server@latest"],
+        "env": {
+          "FASTMCP_LOG_LEVEL": "ERROR"
+        }
+      },
+      "awslabs.aws-documentation-mcp-server": {
+        "command": "uvx",
+        "args": ["awslabs.aws-documentation-mcp-server@latest"],
+        "env": {
+          "FASTMCP_LOG_LEVEL": "ERROR"
+        }
+      },
+      "awslabs.aws-diagram-mcp-server": {
+        "command": "uvx",
+        "args": ["awslabs.aws-diagram-mcp-server"],
+        "env": {
+          "FASTMCP_LOG_LEVEL": "ERROR"
+        }
+      }
+    }
+  }
+}
