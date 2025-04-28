@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="clapikit",
-    use_scm_version=True,
+    version="0.1.0",
     description="CLI tool for OpenAPI specifications",
     author="youyo",
     packages=find_packages(where="src"),
@@ -20,5 +20,4 @@ setup(
             "clapikit=clapikit.cli:main",
         ],
     },
-    setup_requires=["setuptools_scm>=6.2"],
 )

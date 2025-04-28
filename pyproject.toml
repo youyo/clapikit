@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -20,6 +20,3 @@ clapikit = "clapikit.cli:main"
 
 [tools.setuptools.package-dir]
 clapikit = "src/clapikit"
-
-[tool.setuptools_scm]
-write_to = "src/clapikit/_version.py"
