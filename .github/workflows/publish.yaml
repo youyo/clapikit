@@ -1,51 +1,35 @@
-name: Publish to PyPI
+name: Publish python package
 
 on:
   push:
+    branches-ignore:
+      - "**"
     tags:
-      - 'v*'  # Trigger on version tags (v0.1.0, v1.0.0, etc.)
+      - "v*"
 
 jobs:
-  build-and-publish:
-    name: Build and publish to PyPI
+  publish:
     runs-on: ubuntu-latest
-    
+    permissions:
+      id-token: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          fetch-depth: 0  # Fetch all history for proper versioning
-      
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-      
-      - name: Install uv
+          python-version: "3.13"
+      - name: Install dependencies
         run: |
-          pip install uv
-      
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade build setuptools setuptools_scm
       - name: Generate version file
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
           echo "VERSION=$VERSION"
           echo "__version__ = '$VERSION'" > src/clapikit/_version.py
-      
-      - name: Install dependencies
-        run: |
-          uv pip install -r requirements.txt
-          uv pip install build twine
-      
       - name: Build package
         run: |
           python -m build
-      
-      - name: Check package
-        run: |
-          twine check dist/*
-      
-      - name: Publish to PyPI
+      - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
-          skip-existing: true
