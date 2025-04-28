@@ -14,25 +14,24 @@ jobs:
       id-token: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Needed for setuptools_scm to determine version from git tags
-      
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v1
-        with:
-          uv-version: 0.6.17
-      
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Set up Python
-        run: uv venv --python=3.13
-      
-      - name: Install dependencies
-        run: |
-          uv pip install --system build setuptools setuptools_scm
-      
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: pyproject.toml
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
       - name: Build package
         run: |
-          python -m build
-      
+          uv run python -m build
+
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
