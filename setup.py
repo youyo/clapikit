@@ -14,7 +14,7 @@ setup(
         "requests>=2.0.0",
         "pydantic>=2.0.0",
     ],
-    python_requires=">=3.13",
+    python_requires=">=3.10",
     entry_points={
         "console_scripts": [
             "clapikit=clapikit.cli:main",
