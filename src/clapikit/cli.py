@@ -13,7 +13,7 @@ def cli():
     pass
 
 @cli.command()
-@click.argument('spec_file', type=click.Path(exists=True))
+@click.argument('spec_file')
 @click.option('--server', help='Override server URL from the OpenAPI spec')
 def run(spec_file, server):
     """Run commands based on OpenAPI specification."""
