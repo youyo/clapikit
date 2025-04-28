@@ -1,7 +1,25 @@
+[build-system]
+requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "clapikit"
 version = "0.1.0"
-description = "Add your description here"
+description = "CLI tool for OpenAPI specifications"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "click>=8.0.0",
+    "pyyaml>=6.0",
+    "requests>=2.0.0",
+    "pydantic>=2.0.0"
+]
+
+[project.scripts]
+clapikit = "clapikit.cli:main"
+
+[tools.setuptools.package-dir]
+clapikit = "src/clapikit"
+
+[tool.setuptools_scm]
+write_to = "src/clapikit/_version.py"
