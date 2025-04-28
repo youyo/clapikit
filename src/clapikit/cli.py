@@ -120,12 +120,31 @@ class DynamicGroup(click.Group):
     
     def get_command(self, ctx, name):
         """Get a command by name."""
-        # Get spec from context
-        if not dynamic_cli.commands and hasattr(ctx, 'obj') and ctx.obj:
-            spec = ctx.obj.get('spec')
-            server = ctx.obj.get('server')
-            if spec:
-                dynamic_cli.load_spec(spec, server)
+        try:
+            # First try to get from context
+            if hasattr(ctx, 'obj') and ctx.obj:
+                spec = ctx.obj.get('spec')
+                server = ctx.obj.get('server')
+                if spec and not dynamic_cli.commands:
+                    dynamic_cli.load_spec(spec, server)
+            
+            if not dynamic_cli.commands:
+                args = sys.argv
+                for i, arg in enumerate(args):
+                    if arg == '--spec' or arg == '-s':
+                        if i + 1 < len(args):
+                            spec_file = args[i + 1]
+                            server = None
+                            for j, arg2 in enumerate(args):
+                                if arg2 == '--server':
+                                    if j + 1 < len(args):
+                                        server = args[j + 1]
+                                        break
+                            # Load spec
+                            dynamic_cli.load_spec(spec_file, server)
+                            break
+        except Exception as e:
+            click.echo(f"Error loading spec: {str(e)}", err=True)
         
         # Return command if it exists
         if name in dynamic_cli.commands:
