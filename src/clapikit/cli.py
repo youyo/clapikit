@@ -1,4 +1,3 @@
-
 import os
 import sys
 import click
@@ -30,6 +29,7 @@ class DynamicCLI:
             self.client = APIClient(self.spec)
             click.echo(f"Using server: {self.spec.server_url}")
             
+            # Create dynamic commands
             self.create_commands()
             
             return True
@@ -42,13 +42,16 @@ class DynamicCLI:
         if not self.spec:
             return
         
+        # Clear existing commands
         self.commands = {}
         
+        # Create new commands
         for path, methods in self.spec.paths.items():
             for method, details in methods.items():
                 operation_id = details.get('operationId', f"{method}_{path.replace('/', '_').strip('_')}")
                 summary = details.get('summary', 'No description')
                 
+                # Store command info
                 self.commands[operation_id] = {
                     'path': path,
                     'method': method,
@@ -68,10 +71,12 @@ class DynamicCLI:
         path = cmd_info['path']
         method = cmd_info['method']
         
+        # Parse JSON inputs
         request_data = json.loads(data) if data else None
         request_params = json.loads(params) if params else None
         request_headers = json.loads(headers) if headers else None
         
+        # Make the request
         response = self.client.request(
             path=path,
             method=method,
@@ -80,6 +85,7 @@ class DynamicCLI:
             headers=request_headers
         )
         
+        # Display response
         if output == 'json' and response.headers.get('content-type', '').startswith('application/json'):
             try:
                 click.echo(json.dumps(response.json(), indent=2))
@@ -88,70 +94,81 @@ class DynamicCLI:
         else:
             click.echo(response.text)
         
+        # Show status code
         click.echo(f"\nStatus: {response.status_code}")
         
         return response
 
+# Create a singleton instance
 dynamic_cli = DynamicCLI()
 
-@click.group(invoke_without_command=True)
+# Create a dynamic Click command group
+class DynamicGroup(click.Group):
+    """Custom Group class that loads commands from OpenAPI spec."""
+    
+    def list_commands(self, ctx):
+        """List available commands."""
+        # Get spec from context
+        if not dynamic_cli.commands and hasattr(ctx, 'obj') and ctx.obj:
+            spec = ctx.obj.get('spec')
+            server = ctx.obj.get('server')
+            if spec:
+                dynamic_cli.load_spec(spec, server)
+        
+        # Return command names
+        return sorted(dynamic_cli.commands.keys())
+    
+    def get_command(self, ctx, name):
+        """Get a command by name."""
+        # Get spec from context
+        if not dynamic_cli.commands and hasattr(ctx, 'obj') and ctx.obj:
+            spec = ctx.obj.get('spec')
+            server = ctx.obj.get('server')
+            if spec:
+                dynamic_cli.load_spec(spec, server)
+        
+        # Return command if it exists
+        if name in dynamic_cli.commands:
+            cmd_info = dynamic_cli.commands[name]
+            
+            # Create a command for this endpoint
+            @click.command(name=name, help=f"{cmd_info['summary']} [{cmd_info['method'].upper()} {cmd_info['path']}]")
+            @click.option('--data', '-d', help='JSON data to send in the request body')
+            @click.option('--params', '-p', help='Query parameters as JSON')
+            @click.option('--headers', '-H', help='Headers as JSON')
+            @click.option('--output', '-o', type=click.Choice(['json', 'text']), default='json', help='Output format')
+            def command(data=None, params=None, headers=None, output='json'):
+                return dynamic_cli.execute_command(name, data, params, headers, output)
+            
+            return command
+        
+        return None
+
+# Main CLI group
+@click.group(cls=DynamicGroup, invoke_without_command=True)
 @click.version_option()
 @click.option('--spec', '-s', required=True, help='Path or URL to OpenAPI specification')
 @click.option('--server', help='Override server URL from the OpenAPI spec')
 @click.pass_context
 def cli(ctx, spec, server):
     """CLI tool for OpenAPI specifications."""
+    # Store parameters in context
     ctx.ensure_object(dict)
     ctx.obj['spec'] = spec
     ctx.obj['server'] = server
     
-    if not dynamic_cli.load_spec(spec, server):
-        return
-    
+    # Load spec if no subcommand is provided
     if ctx.invoked_subcommand is None:
+        if not dynamic_cli.load_spec(spec, server):
+            return
+        
+        # Show available commands
         click.echo("\nAvailable commands:")
         for cmd_name, cmd_info in sorted(dynamic_cli.commands.items()):
             click.echo(f"  {cmd_name} - {cmd_info['summary']} [{cmd_info['method'].upper()} {cmd_info['path']}]")
 
-def add_dynamic_commands():
-    """Add dynamic commands to the CLI based on the OpenAPI spec."""
-    for cmd_name, cmd_info in dynamic_cli.commands.items():
-        def make_callback(name):
-            def callback(data=None, params=None, headers=None, output='json'):
-                return dynamic_cli.execute_command(name, data, params, headers, output)
-            return callback
-        
-        @click.command(name=cmd_name, help=f"{cmd_info['summary']} [{cmd_info['method'].upper()} {cmd_info['path']}]")
-        @click.option('--data', '-d', help='JSON data to send in the request body')
-        @click.option('--params', '-p', help='Query parameters as JSON')
-        @click.option('--headers', '-H', help='Headers as JSON')
-        @click.option('--output', '-o', type=click.Choice(['json', 'text']), default='json', help='Output format')
-        def command_func(data=None, params=None, headers=None, output='json'):
-            return dynamic_cli.execute_command(cmd_name, data, params, headers, output)
-        
-        command_func.__name__ = f"command_{cmd_name}"
-        
-        cmd = command_func
-        
-        cli.add_command(cmd)
-
 def main():
     """Entry point for the CLI."""
-    spec_file = None
-    server = None
-    
-    for i, arg in enumerate(sys.argv[1:], 1):
-        if arg == '--spec' or arg == '-s':
-            if i < len(sys.argv):
-                spec_file = sys.argv[i]
-        elif arg == '--server':
-            if i < len(sys.argv):
-                server = sys.argv[i]
-    
-    if spec_file:
-        dynamic_cli.load_spec(spec_file, server)
-        add_dynamic_commands()
-    
     cli(obj={})
 
 if __name__ == "__main__":
