@@ -28,6 +28,9 @@ clapikit --spec https://example.com/openapi.yaml getUserInfo
 # Override server URL
 clapikit --spec https://example.com/openapi.yaml --server http://custom-server:8080 getUserInfo
 
+# Enable debug output
+clapikit --spec https://example.com/openapi.yaml --debug getUserInfo
+
 # Send data with a request
 clapikit --spec https://example.com/openapi.yaml createUser --data '{"name": "John", "email": "john@example.com"}'
 
@@ -47,6 +50,7 @@ clapikit --spec https://example.com/openapi.yaml getUserInfo --output text
 - Dynamically generate subcommands based on API endpoints
 - Execute API requests directly from the command line
 - Override server URL from command line
+- Debug mode for detailed logging
 - Support for request data, query parameters, and headers
 - JSON and text output formats
 

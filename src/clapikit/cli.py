@@ -15,19 +15,23 @@ class DynamicCLI:
         self.spec = None
         self.client = None
         self.commands = {}
+        self.debug = False
     
-    def load_spec(self, spec_file: str, server: Optional[str] = None):
+    def load_spec(self, spec_file: str, server: Optional[str] = None, debug: bool = False):
         """Load OpenAPI specification and initialize client."""
         try:
+            self.debug = debug
             parser = OpenAPIParser(spec_file)
             self.spec = parser.parse()
             
             if server:
-                click.echo(f"Overriding server URL with: {server}")
+                if debug:
+                    click.echo(f"Overriding server URL with: {server}")
                 self.spec.server_url = server
             
             self.client = APIClient(self.spec)
-            click.echo(f"Using server: {self.spec.server_url}")
+            if debug:
+                click.echo(f"Using server: {self.spec.server_url}")
             
             # Create dynamic commands
             self.create_commands()
@@ -112,8 +116,9 @@ class DynamicGroup(click.Group):
         if not dynamic_cli.commands and hasattr(ctx, 'obj') and ctx.obj:
             spec = ctx.obj.get('spec')
             server = ctx.obj.get('server')
+            debug = ctx.obj.get('debug', False)
             if spec:
-                dynamic_cli.load_spec(spec, server)
+                dynamic_cli.load_spec(spec, server, debug)
         
         # Return command names
         return sorted(dynamic_cli.commands.keys())
@@ -125,11 +130,13 @@ class DynamicGroup(click.Group):
             if hasattr(ctx, 'obj') and ctx.obj:
                 spec = ctx.obj.get('spec')
                 server = ctx.obj.get('server')
+                debug = ctx.obj.get('debug', False)
                 if spec and not dynamic_cli.commands:
-                    dynamic_cli.load_spec(spec, server)
+                    dynamic_cli.load_spec(spec, server, debug)
             
             if not dynamic_cli.commands:
                 args = sys.argv
+                debug = '--debug' in args
                 for i, arg in enumerate(args):
                     if arg == '--spec' or arg == '-s':
                         if i + 1 < len(args):
@@ -141,7 +148,7 @@ class DynamicGroup(click.Group):
                                         server = args[j + 1]
                                         break
                             # Load spec
-                            dynamic_cli.load_spec(spec_file, server)
+                            dynamic_cli.load_spec(spec_file, server, debug)
                             break
         except Exception as e:
             click.echo(f"Error loading spec: {str(e)}", err=True)
@@ -168,17 +175,19 @@ class DynamicGroup(click.Group):
 @click.version_option()
 @click.option('--spec', '-s', required=True, help='Path or URL to OpenAPI specification')
 @click.option('--server', help='Override server URL from the OpenAPI spec')
+@click.option('--debug', is_flag=True, help='Enable debug output')
 @click.pass_context
-def cli(ctx, spec, server):
+def cli(ctx, spec, server, debug):
     """CLI tool for OpenAPI specifications."""
     # Store parameters in context
     ctx.ensure_object(dict)
     ctx.obj['spec'] = spec
     ctx.obj['server'] = server
+    ctx.obj['debug'] = debug
     
     # Load spec if no subcommand is provided
     if ctx.invoked_subcommand is None:
-        if not dynamic_cli.load_spec(spec, server):
+        if not dynamic_cli.load_spec(spec, server, debug):
             return
         
         # Show available commands
